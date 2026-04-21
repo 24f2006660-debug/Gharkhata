@@ -5,11 +5,16 @@ from collections import defaultdict
 import os
 
 app = Flask(__name__)
-app.secret_key = "gharkhata_secret_2024"
+app.secret_key = "mysecretkey123"
+database_url = os.environ.get("DATABASE_URL")
 
-# ── SQLite local database ──────────────────────────────────────────────────────
-basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'gharkhata.db')
+if database_url:
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+else:
+    # 👇 LOCAL use panna fallback
+    database_url = "sqlite:///expenses.db"
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -508,3 +513,5 @@ def chat():
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8080)
+with app.app_context():
+    db.create_all()
