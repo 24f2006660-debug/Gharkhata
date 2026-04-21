@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Electricity — GharKhata{% endblock %}
+{% block page_title %}Add Electricity Reading{% endblock %}
+{% block content %}
+<div style="max-width:580px;">
+
+  {% if last %}
+  <div class="card fi" style="margin-bottom:16px;border-color:rgba(240,180,41,.25);">
+    <div class="ct">⚡ Previous Reading</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
+      <div><div style="font-size:.7rem;color:var(--muted);margin-bottom:3px;">Date</div><div style="font-weight:600;">{{ last.date }}</div></div>
+      <div><div style="font-size:.7rem;color:var(--muted);margin-bottom:3px;">Meter</div><div style="font-weight:600;color:var(--gold);">{{ "%.3f"|format(last.meter_reading) }}</div></div>
+      <div><div style="font-size:.7rem;color:var(--muted);margin-bottom:3px;">Cumulative Cost</div><div style="font-weight:600;color:var(--green);">₹{{ "%.2f"|format(last.total_cost) }}</div></div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card fi">
+    <div class="ct">⚡ New Reading Entry</div>
+    <form method="POST">
+      <div class="fg">
+        <div class="fgp">
+          <label>Date</label>
+          <input class="fc" type="date" name="entry_date" value="{{ today }}" required>
+        </div>
+        <div class="fgp">
+          <label>Meter Reading (units)</label>
+          <input class="fc" type="number" step="0.001" name="meter_reading" id="mr" placeholder="e.g. 1234.567" required>
+        </div>
+        <div class="fgp">
+          <label>Slab Rate (₹ per unit)</label>
+          <input class="fc" type="number" step="0.0001" name="slab_rate" id="sr"
+            value="{% if last %}{{ last.slab_rate }}{% endif %}" placeholder="e.g. 4.5000">
+        </div>
+      </div>
+
+      <div id="prev" style="display:none;margin-top:16px;padding:14px;background:var(--s2);border-radius:11px;border:1px solid var(--border);">
+        <div style="font-size:.72rem;color:var(--muted);margin-bottom:10px;">📊 AUTO-CALCULATED PREVIEW</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div><div style="font-size:.7rem;color:var(--muted);">Daily Units</div><div id="pdu" style="font-weight:700;color:var(--gold);">—</div></div>
+          <div><div style="font-size:.7rem;color:var(--muted);">Daily Cost</div><div id="pdc" style="font-weight:700;color:var(--gold);">—</div></div>
+          <div><div style="font-size:.7rem;color:var(--muted);">Cumulative Units</div><div id="ptu" style="font-weight:700;color:var(--green);">—</div></div>
+          <div><div style="font-size:.7rem;color:var(--muted);">Cumulative Cost</div><div id="ptc" style="font-weight:700;color:var(--green);">—</div></div>
+        </div>
+      </div>
+
+      <div class="fa">
+        <button class="btn bp" type="submit">⚡ Save Reading</button>
+        <a href="/" class="btn bg">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const lm={{ (last.meter_reading) if last else 0 }};
+const ltu={{ (last.total_units) if last else 0 }};
+const ltc={{ (last.total_cost) if last else 0 }};
+function upd(){
+  const r=parseFloat(document.getElementById('mr').value)||0;
+  const s=parseFloat(document.getElementById('sr').value)||0;
+  if(!r){ document.getElementById('prev').style.display='none'; return; }
+  const du=r-lm, dc=du*s, tu=ltu+du, tc=ltc+dc;
+  document.getElementById('pdu').textContent=du.toFixed(4)+' units';
+  document.getElementById('pdc').textContent='₹'+dc.toFixed(4);
+  document.getElementById('ptu').textContent=tu.toFixed(4)+' units';
+  document.getElementById('ptc').textContent='₹'+tc.toFixed(4);
+  document.getElementById('prev').style.display='block';
+}
+document.getElementById('mr').addEventListener('input',upd);
+document.getElementById('sr').addEventListener('input',upd);
+</script>
+{% endblock %}

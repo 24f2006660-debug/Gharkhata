@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}All Data — GharKhata{% endblock %}
+{% block page_title %}All Data{% endblock %}
+{% block topbar %}<a href="/add_variable" class="btn bp">+ Add Entry</a>{% endblock %}
+
+{% block content %}
+<div class="tabs">
+  <button class="tab on" onclick="sw('fixed',this)">🏠 Fixed</button>
+  <button class="tab"    onclick="sw('variable',this)">🛒 Daily</button>
+  <button class="tab"    onclick="sw('details',this)">📝 Details</button>
+  <button class="tab"    onclick="sw('eb',this)">⚡ Electricity</button>
+</div>
+
+<!-- FIXED -->
+<div id="t-fixed">
+  <div class="card fi" style="padding:0;">
+    <div class="tw">
+      <table>
+        <thead><tr><th>ID</th><th>Rent</th><th>EB</th><th>Gas</th><th>WiFi</th><th>Total</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for f in fixed %}
+          <tr>
+            <td>#{{ f.id }}</td>
+            <td>₹{{ "%.2f"|format(f.rent or 0) }}</td>
+            <td>₹{{ "%.2f"|format(f.eb or 0) }}</td>
+            <td>₹{{ "%.2f"|format(f.gas or 0) }}</td>
+            <td>₹{{ "%.2f"|format(f.wifi or 0) }}</td>
+            <td><strong style="color:var(--gold);">₹{{ "%.2f"|format(f.total) }}</strong></td>
+            <td style="display:flex;gap:6px;">
+              <a href="/edit_fixed/{{ f.id }}" class="btn bg" style="padding:5px 11px;font-size:.76rem;">Edit</a>
+              <a href="/delete_fixed/{{ f.id }}" class="btn bd" style="padding:5px 11px;font-size:.76rem;" onclick="return confirm('Delete?')">Del</a>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" style="text-align:center;padding:28px;color:var(--muted);">No data. <a href="/add_fixed" style="color:var(--gold);">Add now →</a></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- VARIABLE -->
+<div id="t-variable" style="display:none;">
+  <div class="card fi" style="padding:0;">
+    <div class="tw">
+      <table>
+        <thead><tr><th>Date</th><th>Provisions</th><th>Vegetables</th><th>Fruits</th><th>Meat/Egg</th><th>Water</th><th>Transport</th><th>Others</th><th>Total</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for v in variable %}
+          <tr>
+            <td><span class="badge bg1">{{ v.date }}</span></td>
+            <td>₹{{ "%.2f"|format(v.provisions or 0) }}</td>
+            <td>₹{{ "%.2f"|format(v.vegetables or 0) }}</td>
+            <td>₹{{ "%.2f"|format(v.fruits or 0) }}</td>
+            <td>₹{{ "%.2f"|format(v.meat_egg or 0) }}</td>
+            <td>₹{{ "%.2f"|format(v.water or 0) }}</td>
+            <td>₹{{ "%.2f"|format(v.transport or 0) }}</td>
+            <td>₹{{ "%.2f"|format(v.others or 0) }}</td>
+            <td><strong style="color:var(--gold);">₹{{ "%.2f"|format(v.total) }}</strong></td>
+            <td style="display:flex;gap:6px;">
+              <a href="/edit_variable/{{ v.id }}" class="btn bg" style="padding:5px 11px;font-size:.76rem;">Edit</a>
+              <a href="/delete_variable/{{ v.id }}" class="btn bd" style="padding:5px 11px;font-size:.76rem;" onclick="return confirm('Delete?')">Del</a>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="10" style="text-align:center;padding:28px;color:var(--muted);">No data. <a href="/add_variable" style="color:var(--gold);">Add now →</a></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- DETAILS -->
+<div id="t-details" style="display:none;">
+  <div class="card fi" style="padding:0;">
+    <div class="tw">
+      <table>
+        <thead><tr><th>Date</th><th>Provisions</th><th>Vegetables</th><th>Fruits</th><th>Meat/Egg</th><th>Water</th><th>Transport</th><th>Others</th><th>Total</th><th>Del</th></tr></thead>
+        <tbody>
+          {% for d in details %}
+          <tr>
+            <td><span class="badge bg1">{{ d.date }}</span></td>
+            <td><div style="font-size:.72rem;color:var(--muted);">{{ d.provisions or '' }}</div>₹{{ d.provisions_cost or 0 }}</td>
+            <td><div style="font-size:.72rem;color:var(--muted);">{{ d.vegetables or '' }}</div>₹{{ d.vegetables_cost or 0 }}</td>
+            <td><div style="font-size:.72rem;color:var(--muted);">{{ d.fruits or '' }}</div>₹{{ d.fruits_cost or 0 }}</td>
+            <td><div style="font-size:.72rem;color:var(--muted);">{{ d.meat_egg or '' }}</div>₹{{ d.meat_egg_cost or 0 }}</td>
+            <td>₹{{ d.water_cost or 0 }}</td>
+            <td><div style="font-size:.72rem;color:var(--muted);">{{ d.transport or '' }}</div>₹{{ d.transport_cost or 0 }}</td>
+            <td><div style="font-size:.72rem;color:var(--muted);">{{ d.others or '' }}</div>₹{{ d.others_cost or 0 }}</td>
+            <td><strong style="color:var(--gold);">₹{{ d.total }}</strong></td>
+            <td><a href="/delete_details/{{ d.id }}" class="btn bd" style="padding:5px 11px;font-size:.76rem;" onclick="return confirm('Delete?')">Del</a></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="10" style="text-align:center;padding:28px;color:var(--muted);">No data. <a href="/add_details" style="color:var(--gold);">Add now →</a></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- EB -->
+<div id="t-eb" style="display:none;">
+  <div style="margin-bottom:10px;"><a href="/add_eb" class="btn bp">⚡ Add Reading</a></div>
+  <div class="card fi" style="padding:0;">
+    <div class="tw">
+      <table>
+        <thead><tr><th>Date</th><th>Meter Reading</th><th>Daily Units</th><th>Cumulative Units</th><th>Slab Rate</th><th>Daily Cost</th><th>Cumulative Cost</th><th>Del</th></tr></thead>
+        <tbody>
+          {% for e in eb %}
+          <tr>
+            <td><span class="badge bg1">{{ e.date }}</span></td>
+            <td>{{ "%.3f"|format(e.meter_reading or 0) }}</td>
+            <td><span class="badge bg2">{{ "%.4f"|format(e.daily_units or 0) }}</span></td>
+            <td>{{ "%.4f"|format(e.total_units or 0) }}</td>
+            <td>₹{{ "%.4f"|format(e.slab_rate or 0) }}</td>
+            <td style="color:var(--gold);">₹{{ "%.4f"|format(e.daily_cost or 0) }}</td>
+            <td><strong style="color:var(--green);">₹{{ "%.4f"|format(e.total_cost or 0) }}</strong></td>
+            <td><a href="/delete_eb/{{ e.id }}" class="btn bd" style="padding:5px 11px;font-size:.76rem;" onclick="return confirm('Delete?')">Del</a></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="8" style="text-align:center;padding:28px;color:var(--muted);">No data. <a href="/add_eb" style="color:var(--gold);">Add reading →</a></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function sw(tab,btn){
+  ['fixed','variable','details','eb'].forEach(t=>document.getElementById('t-'+t).style.display='none');
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.getElementById('t-'+tab).style.display='block';
+  btn.classList.add('on');
+}
+</script>
+{% endblock %}

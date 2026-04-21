@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Edit Fixed — GharKhata{% endblock %}
+{% block page_title %}Edit Fixed Costs{% endblock %}
+{% block content %}
+<div style="max-width:580px;">
+  <div class="card fi">
+    <div class="ct">✏️ Edit Fixed Costs</div>
+    <form method="POST">
+      <div class="fg">
+        <div class="fgp"><label>Rent (₹)</label><input class="fc" type="number" step="0.01" name="rent" value="{{ fixed.rent or 0 }}" required></div>
+        <div class="fgp"><label>Electricity / EB (₹)</label><input class="fc" type="number" step="0.01" name="eb" value="{{ fixed.eb or 0 }}" required></div>
+        <div class="fgp"><label>Gas (₹)</label><input class="fc" type="number" step="0.01" name="gas" value="{{ fixed.gas or 0 }}" required></div>
+        <div class="fgp"><label>WiFi (₹)</label><input class="fc" type="number" step="0.01" name="wifi" value="{{ fixed.wifi or 0 }}" required></div>
+      </div>
+      <div class="fa">
+        <button class="btn bp" type="submit">💾 Update</button>
+        <a href="/data" class="btn bg">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

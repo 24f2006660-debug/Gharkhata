@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Expense Details — GharKhata{% endblock %}
+{% block page_title %}Add Expense Details{% endblock %}
+{% block content %}
+<div style="max-width:760px;">
+  <div class="card fi">
+    <div class="ct">📝 Itemised Expense Details</div>
+    <form method="POST">
+      <div class="fgp" style="margin-bottom:16px;max-width:220px;">
+        <label>Date</label>
+        <input class="fc" type="date" name="entry_date" value="{{ today }}" required>
+      </div>
+
+      {% set rows = [
+        ('🧺','provisions','Provisions','What did you buy?'),
+        ('🥦','vegetables','Vegetables','Which vegetables?'),
+        ('🍎','fruits','Fruits','Which fruits?'),
+        ('🥩','meat_egg','Meat & Eggs','What meat/eggs?'),
+        ('🚌','transport','Transport','Mode / destination?'),
+        ('📦','others','Others','Anything else?')
+      ] %}
+
+      {% for ico, key, label, hint in rows %}
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:11px;padding:14px;margin-bottom:12px;">
+        <div style="font-size:.83rem;font-weight:600;margin-bottom:10px;">{{ ico }} {{ label }}</div>
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;">
+          <div class="fgp"><label>Items</label><input class="fc" type="text" name="{{ key }}" placeholder="{{ hint }}"></div>
+          <div class="fgp"><label>Cost (₹)</label><input class="fc dcost" type="number" step="0.01" name="{{ key }}_cost" value="0" placeholder="0.00"></div>
+        </div>
+      </div>
+      {% endfor %}
+
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:11px;padding:14px;margin-bottom:12px;">
+        <div style="font-size:.83rem;font-weight:600;margin-bottom:10px;">💧 Water</div>
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;">
+          <div class="fgp"><label>Quantity (litres)</label><input class="fc" type="number" step="0.1" name="water" value="0"></div>
+          <div class="fgp"><label>Cost (₹)</label><input class="fc dcost" type="number" step="0.01" name="water_cost" value="0"></div>
+        </div>
+      </div>
+
+      <div style="padding:14px;background:rgba(240,180,41,.06);border:1px solid rgba(240,180,41,.2);border-radius:11px;margin-bottom:4px;">
+        <div style="font-size:.72rem;color:var(--muted);">TOTAL</div>
+        <div id="dtot" style="font-family:var(--fh);font-size:1.5rem;font-weight:800;color:var(--gold);">₹0.00</div>
+      </div>
+
+      <div class="fa">
+        <button class="btn bp" type="submit">💾 Save Details</button>
+        <a href="/" class="btn bg">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function upd(){ let t=0; document.querySelectorAll('.dcost').forEach(i=>t+=parseFloat(i.value)||0); document.getElementById('dtot').textContent='₹'+t.toFixed(2); }
+document.querySelectorAll('.dcost').forEach(i=>i.addEventListener('input',upd));
+</script>
+{% endblock %}

@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — GharKhata{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block topbar %}
+  <span style="font-size:.78rem;color:var(--muted);">{{ today }}</span>
+  <a href="/add_variable" class="btn bp">+ Daily Entry</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- STAT CARDS -->
+<div class="sg fi">
+  <div class="sc" style="--c:rgba(240,180,41,.18);">
+    <div class="si">💸</div>
+    <div class="sl">Total Expenses</div>
+    <div class="sv">₹{{ "{:,.0f}".format(overall_total) }}</div>
+    <div class="ss">Fixed + Variable</div>
+  </div>
+  <div class="sc" style="--c:rgba(62,207,142,.18);">
+    <div class="si">🏠</div>
+    <div class="sl">Fixed Costs</div>
+    <div class="sv">₹{{ "{:,.0f}".format(fixed_total) }}</div>
+    <div class="ss">Rent · EB · Gas · WiFi</div>
+  </div>
+  <div class="sc" style="--c:rgba(99,102,241,.18);">
+    <div class="si">🛒</div>
+    <div class="sl">Variable Costs</div>
+    <div class="sv">₹{{ "{:,.0f}".format(variable_total) }}</div>
+    <div class="ss">Daily spending</div>
+  </div>
+  <div class="sc" style="--c:rgba(224,92,46,.18);">
+    <div class="si">⚡</div>
+    <div class="sl">Electricity (EB)</div>
+    <div class="sv">₹{{ "{:,.0f}".format(fixed.eb if fixed else 0) }}</div>
+    <div class="ss">Cumulative cost</div>
+  </div>
+</div>
+
+<!-- DATE FILTER -->
+<div class="sec-title fi fi1">📅 Filter by Date Range</div>
+<div class="card fi fi1" style="margin-bottom:22px;">
+  <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:14px;align-items:end;">
+    <div class="fgp">
+      <label>From Date</label>
+      <input type="date" id="fs" class="fc" value="{{ today }}">
+    </div>
+    <div class="fgp">
+      <label>To Date</label>
+      <input type="date" id="fe" class="fc" value="{{ today }}">
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn bp" onclick="applyFilter()">🔍 Filter</button>
+      <button class="btn bg" onclick="clearFilter()">✕</button>
+    </div>
+  </div>
+  <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;">
+    <button class="btn bg" style="padding:5px 11px;font-size:.76rem;" onclick="qRange('today')">Today</button>
+    <button class="btn bg" style="padding:5px 11px;font-size:.76rem;" onclick="qRange('week')">This Week</button>
+    <button class="btn bg" style="padding:5px 11px;font-size:.76rem;" onclick="qRange('month')">This Month</button>
+    <button class="btn bg" style="padding:5px 11px;font-size:.76rem;" onclick="qRange('30')">Last 30 Days</button>
+  </div>
+  <div id="fres" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center;">
+      <div>
+        <div style="font-size:.7rem;color:var(--muted);margin-bottom:3px;">FIXED</div>
+        <div id="ff" style="font-family:var(--fh);font-size:1.15rem;font-weight:700;color:var(--green);">—</div>
+      </div>
+      <div>
+        <div style="font-size:.7rem;color:var(--muted);margin-bottom:3px;">VARIABLE</div>
+        <div id="fv" style="font-family:var(--fh);font-size:1.15rem;font-weight:700;color:var(--gold);">—</div>
+      </div>
+      <div>
+        <div style="font-size:.7rem;color:var(--muted);margin-bottom:3px;">TOTAL</div>
+        <div id="ft" style="font-family:var(--fh);font-size:1.15rem;font-weight:700;color:var(--text);">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHARTS ROW 1 -->
+<div class="cg fi fi2">
+  <div class="cc">
+    <div class="ch"><div class="cht">📦 Category Spend</div><span class="chb">Variable</span></div>
+    <canvas id="barC" height="220"></canvas>
+  </div>
+  <div class="cc">
+    <div class="ch"><div class="cht">🏠 Fixed Breakdown</div><span class="chb">Monthly</span></div>
+    <canvas id="pieC" height="220"></canvas>
+  </div>
+  <div class="cc wide">
+    <div class="ch"><div class="cht">📈 Daily Expense Trend</div><span class="chb" id="lineBadge">All time</span></div>
+    <canvas id="lineC" height="130"></canvas>
+  </div>
+</div>
+
+<!-- EB CHARTS -->
+{% if eb_dates %}
+<div class="sec-title fi fi3">⚡ Electricity Tracker</div>
+<div class="cg fi fi3">
+  <div class="cc">
+    <div class="ch"><div class="cht">Daily Cost (₹)</div><span class="chb">Per day</span></div>
+    <canvas id="ebD" height="220"></canvas>
+  </div>
+  <div class="cc">
+    <div class="ch"><div class="cht">Cumulative Cost (₹)</div><span class="chb">Running total</span></div>
+    <canvas id="ebC" height="220"></canvas>
+  </div>
+</div>
+{% endif %}
+
+<!-- DETAILS TABLE -->
+{% if details %}
+<div class="sec-title fi">📝 Expense Details</div>
+<div class="card fi" style="padding:0;margin-bottom:22px;">
+  <div class="tw">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th><th>Provisions</th><th>Vegetables</th><th>Fruits</th>
+          <th>Meat/Egg</th><th>Water</th><th>Transport</th><th>Others</th><th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in details %}
+        <tr>
+          <td><span class="badge bg1">{{ d.date }}</span></td>
+          <td>{% if d.provisions %}<div style="font-size:.75rem;color:var(--muted);">{{ d.provisions }}</div>{% endif %}₹{{ d.provisions_cost or 0 }}</td>
+          <td>{% if d.vegetables %}<div style="font-size:.75rem;color:var(--muted);">{{ d.vegetables }}</div>{% endif %}₹{{ d.vegetables_cost or 0 }}</td>
+          <td>{% if d.fruits %}<div style="font-size:.75rem;color:var(--muted);">{{ d.fruits }}</div>{% endif %}₹{{ d.fruits_cost or 0 }}</td>
+          <td>{% if d.meat_egg %}<div style="font-size:.75rem;color:var(--muted);">{{ d.meat_egg }}</div>{% endif %}₹{{ d.meat_egg_cost or 0 }}</td>
+          <td>₹{{ d.water_cost or 0 }}</td>
+          <td>{% if d.transport %}<div style="font-size:.75rem;color:var(--muted);">{{ d.transport }}</div>{% endif %}₹{{ d.transport_cost or 0 }}</td>
+          <td>{% if d.others %}<div style="font-size:.75rem;color:var(--muted);">{{ d.others }}</div>{% endif %}₹{{ d.others_cost or 0 }}</td>
+          <td><strong style="color:var(--gold);">₹{{ d.total }}</strong></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td>TOTAL</td>
+          <td>₹{{ dct.provisions }}</td>
+          <td>₹{{ dct.vegetables }}</td>
+          <td>₹{{ dct.fruits }}</td>
+          <td>₹{{ dct.meat_egg }}</td>
+          <td>₹{{ dct.water }}</td>
+          <td>₹{{ dct.transport }}</td>
+          <td>₹{{ dct.others }}</td>
+          <td>₹{{ dct.grand }}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- EB TABLE -->
+{% if eb_data %}
+<div class="sec-title fi">⚡ Electricity Board Records</div>
+<div class="card fi" style="padding:0;margin-bottom:48px;">
+  <div class="tw">
+    <table>
+      <thead>
+        <tr><th>Date</th><th>Meter Reading</th><th>Daily Units</th><th>Cumulative Units</th><th>Slab Rate</th><th>Daily Cost</th><th>Cumulative Cost</th></tr>
+      </thead>
+      <tbody>
+        {% for e in eb_data %}
+        <tr>
+          <td><span class="badge bg1">{{ e.date }}</span></td>
+          <td>{{ "%.3f"|format(e.meter_reading or 0) }}</td>
+          <td><span class="badge bg2">{{ "%.4f"|format(e.daily_units or 0) }}</span></td>
+          <td>{{ "%.4f"|format(e.total_units or 0) }}</td>
+          <td>₹{{ "%.4f"|format(e.slab_rate or 0) }}</td>
+          <td style="color:var(--gold);">₹{{ "%.4f"|format(e.daily_cost or 0) }}</td>
+          <td><strong style="color:var(--green);">₹{{ "%.4f"|format(e.total_cost or 0) }}</strong></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const C=['#f0b429','#3ecf8e','#3b82f6','#e05c2e','#8b5cf6','#ec4899','#14b8a6'];
+
+// Bar
+const barC=new Chart(document.getElementById('barC'),{
+  type:'bar',
+  data:{labels:{{ bar_labels|tojson }},datasets:[{
+    label:'₹',data:{{ bar_data|tojson }},
+    backgroundColor:C.map(c=>c+'99'),borderColor:C,borderWidth:2,borderRadius:6
+  }]},
+  options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' ₹'+c.parsed.y.toLocaleString()}}},
+    scales:{y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{callback:v=>'₹'+v}},x:{grid:{display:false}}}}
+});
+
+// Pie
+const pieC=new Chart(document.getElementById('pieC'),{
+  type:'doughnut',
+  data:{labels:{{ pie_labels|tojson }},datasets:[{
+    data:{{ pie_data|tojson }},backgroundColor:C.map(c=>c+'bb'),borderColor:C,borderWidth:2,hoverOffset:8
+  }]},
+  options:{responsive:true,cutout:'65%',
+    plugins:{legend:{position:'bottom',labels:{padding:14,usePointStyle:true}},
+             tooltip:{callbacks:{label:c=>' ₹'+c.parsed.toLocaleString()}}}}
+});
+
+// Line
+const lineC=new Chart(document.getElementById('lineC'),{
+  type:'line',
+  data:{labels:{{ line_labels|tojson }},datasets:[{
+    label:'Daily Spend',data:{{ line_data|tojson }},
+    borderColor:'#f0b429',backgroundColor:'rgba(240,180,41,.07)',borderWidth:2.5,
+    pointBackgroundColor:'#f0b429',pointRadius:4,tension:.4,fill:true
+  }]},
+  options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' ₹'+c.parsed.y.toLocaleString()}}},
+    scales:{y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{callback:v=>'₹'+v}},x:{grid:{display:false}}}}
+});
+
+{% if eb_dates %}
+new Chart(document.getElementById('ebD'),{
+  type:'bar',
+  data:{labels:{{ eb_dates|tojson }},datasets:[{
+    label:'Daily Cost',data:{{ eb_daily|tojson }},
+    backgroundColor:'rgba(240,180,41,.6)',borderColor:'#f0b429',borderWidth:2,borderRadius:5
+  }]},
+  options:{responsive:true,plugins:{legend:{display:false}},
+    scales:{y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{callback:v=>'₹'+v}},x:{grid:{display:false}}}}
+});
+new Chart(document.getElementById('ebC'),{
+  type:'line',
+  data:{labels:{{ eb_dates|tojson }},datasets:[{
+    label:'Cumulative',data:{{ eb_cumulative|tojson }},
+    borderColor:'#3ecf8e',backgroundColor:'rgba(62,207,142,.07)',borderWidth:2.5,
+    pointBackgroundColor:'#3ecf8e',pointRadius:4,tension:.4,fill:true
+  }]},
+  options:{responsive:true,plugins:{legend:{display:false}},
+    scales:{y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{callback:v=>'₹'+v}},x:{grid:{display:false}}}}
+});
+{% endif %}
+
+// Date filter
+const origBar={{ bar_data|tojson }};
+const origLineL={{ line_labels|tojson }};
+const origLineD={{ line_data|tojson }};
+
+function qRange(r){
+  const t=new Date(), fmt=d=>d.toISOString().split('T')[0];
+  let s=new Date(t);
+  if(r==='week') s.setDate(t.getDate()-t.getDay());
+  else if(r==='month') s=new Date(t.getFullYear(),t.getMonth(),1);
+  else if(r==='30') s.setDate(t.getDate()-29);
+  document.getElementById('fs').value=fmt(s);
+  document.getElementById('fe').value=fmt(t);
+  applyFilter();
+}
+
+async function applyFilter(){
+  const s=document.getElementById('fs').value, e=document.getElementById('fe').value;
+  if(!s||!e) return;
+  const res=await fetch(`/get-expenses?start_date=${s}&end_date=${e}`);
+  const data=await res.json();
+  document.getElementById('fres').style.display='block';
+  document.getElementById('ff').textContent='₹'+data.fixed_total.toLocaleString();
+  document.getElementById('fv').textContent='₹'+data.variable_total.toLocaleString();
+  document.getElementById('ft').textContent='₹'+data.overall_total.toLocaleString();
+  barC.data.datasets[0].data=data.bar_data; barC.update('active');
+  lineC.data.labels=data.line_labels; lineC.data.datasets[0].data=data.line_data; lineC.update('active');
+  document.getElementById('lineBadge').textContent=data.line_labels.length+' days';
+}
+
+function clearFilter(){
+  document.getElementById('fres').style.display='none';
+  barC.data.datasets[0].data=origBar; barC.update();
+  lineC.data.labels=origLineL; lineC.data.datasets[0].data=origLineD; lineC.update();
+  document.getElementById('lineBadge').textContent='All time';
+}
+</script>
+{% endblock %}

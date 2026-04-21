@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Edit Daily — GharKhata{% endblock %}
+{% block page_title %}Edit Daily Expenses{% endblock %}
+{% block content %}
+<div style="max-width:680px;">
+  <div class="card fi">
+    <div class="ct">✏️ Edit Daily Expense Entry</div>
+    <form method="POST">
+      <div class="fg">
+        <div class="fgp"><label>🧺 Provisions (₹)</label><input class="fc amt" type="number" step="0.01" name="provisions" value="{{ v.provisions or 0 }}"></div>
+        <div class="fgp"><label>🥦 Vegetables (₹)</label><input class="fc amt" type="number" step="0.01" name="vegetables" value="{{ v.vegetables or 0 }}"></div>
+        <div class="fgp"><label>🍎 Fruits (₹)</label><input class="fc amt" type="number" step="0.01" name="fruits" value="{{ v.fruits or 0 }}"></div>
+        <div class="fgp"><label>🥩 Meat & Eggs (₹)</label><input class="fc amt" type="number" step="0.01" name="meat_egg" value="{{ v.meat_egg or 0 }}"></div>
+        <div class="fgp"><label>💧 Water (₹)</label><input class="fc amt" type="number" step="0.01" name="water" value="{{ v.water or 0 }}"></div>
+        <div class="fgp"><label>🚌 Transport (₹)</label><input class="fc amt" type="number" step="0.01" name="transport" value="{{ v.transport or 0 }}"></div>
+        <div class="fgp"><label>📦 Others (₹)</label><input class="fc amt" type="number" step="0.01" name="others" value="{{ v.others or 0 }}"></div>
+        <div class="fgp" style="justify-content:flex-end;">
+          <div style="background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:10px 13px;width:100%;">
+            <div style="font-size:.7rem;color:var(--muted);margin-bottom:3px;">LIVE TOTAL</div>
+            <div id="lt" style="font-family:var(--fh);font-size:1.4rem;font-weight:800;color:var(--gold);">₹0.00</div>
+          </div>
+        </div>
+      </div>
+      <div class="fa">
+        <button class="btn bp" type="submit">💾 Update</button>
+        <a href="/data" class="btn bg">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function upd(){ let t=0; document.querySelectorAll('.amt').forEach(i=>t+=parseFloat(i.value)||0); document.getElementById('lt').textContent='₹'+t.toFixed(2); }
+document.querySelectorAll('.amt').forEach(i=>i.addEventListener('input',upd));
+upd();
+</script>
+{% endblock %}
