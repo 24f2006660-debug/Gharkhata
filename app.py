@@ -3,19 +3,22 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import date, datetime
 from collections import defaultdict
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = "mysecretkey123"
-database_url = os.environ.get("DATABASE_URL")
-print("DATABASE_URL:", database_url) 
 
-if database_url:
-    database_url = database_url.replace("postgres://", "postgresql://", 1)
-else:
-    # 👇 LOCAL use panna fallback
-    database_url = "sqlite:///expenses.db"
+database_url = os.environ.get("DATABASE_URL")
+print("DATABASE_URL:", database_url)
+if not database_url:
+    raise RuntimeError("DATABASE_URL not set!")
+
+database_url = database_url.replace("postgres://", "postgresql://", 1)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -513,6 +516,4 @@ def chat():
 # ── RUN ───────────────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=8080)
-with app.app_context():
-    db.create_all()
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
